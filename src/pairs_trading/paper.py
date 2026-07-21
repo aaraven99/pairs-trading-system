@@ -48,11 +48,17 @@ class AlpacaPaperAdapter:
             return {"dry_run": True, "endpoint": self.base_url, "order": payload}
         key, secret = os.getenv("ALPACA_API_KEY"), os.getenv("ALPACA_SECRET_KEY")
         if not key or not secret:
-            raise RuntimeError("ALPACA_API_KEY and ALPACA_SECRET_KEY are required for paper submission")
+            raise RuntimeError(
+                "ALPACA_API_KEY and ALPACA_SECRET_KEY are required for paper submission"
+            )
         request = Request(
             f"{self.base_url}/v2/orders",
             data=json.dumps(payload).encode(),
-            headers={"Content-Type": "application/json", "APCA-API-KEY-ID": key, "APCA-API-SECRET-KEY": secret},
+            headers={
+                "Content-Type": "application/json",
+                "APCA-API-KEY-ID": key,
+                "APCA-API-SECRET-KEY": secret,
+            },
             method="POST",
         )
         with urlopen(request, timeout=15) as response:  # nosec B310: validated paper endpoint
