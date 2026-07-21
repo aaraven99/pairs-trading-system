@@ -14,7 +14,7 @@ pairs-trading --left KO --right PEP
 pytest && ruff check . && ruff format --check .
 ```
 
-The adapter refuses non-paper endpoints. Market data may be unavailable; the pure research and payload tests run offline.
+The research command downloads current historical prices with yfinance. The adapter refuses non-paper endpoints; submissions remain dry-run unless the adapter is explicitly constructed with `dry_run=False` in your own paper-only integration and local Alpaca environment variables are available. Market data may be unavailable; the pure research and payload tests run offline.
 
 ## Limitations and disclaimer
 

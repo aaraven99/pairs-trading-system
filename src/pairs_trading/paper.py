@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import os
+import json
 from dataclasses import dataclass
+from urllib.request import Request, urlopen
 
 
 @dataclass(frozen=True)
@@ -14,7 +16,7 @@ class PaperOrder:
 
 
 class AlpacaPaperAdapter:
-    """Deliberately dry-run by default; no live endpoint is accepted."""
+    """Paper-only broker adapter; dry run remains the default."""
 
     def __init__(self, dry_run: bool = True) -> None:
         self.dry_run = dry_run
@@ -34,4 +36,17 @@ class AlpacaPaperAdapter:
         }
 
     def submit(self, order: PaperOrder) -> dict[str, object]:
-        return {"dry_run": self.dry_run, "endpoint": self.base_url, "order": self.payload(order)}
+        payload = self.payload(order)
+        if self.dry_run:
+            return {"dry_run": True, "endpoint": self.base_url, "order": payload}
+        key, secret = os.getenv("ALPACA_API_KEY"), os.getenv("ALPACA_SECRET_KEY")
+        if not key or not secret:
+            raise RuntimeError("ALPACA_API_KEY and ALPACA_SECRET_KEY are required for paper submission")
+        request = Request(
+            f"{self.base_url}/v2/orders",
+            data=json.dumps(payload).encode(),
+            headers={"Content-Type": "application/json", "APCA-API-KEY-ID": key, "APCA-API-SECRET-KEY": secret},
+            method="POST",
+        )
+        with urlopen(request, timeout=15) as response:  # nosec B310: validated paper endpoint
+            return {"dry_run": False, "order": json.load(response)}
