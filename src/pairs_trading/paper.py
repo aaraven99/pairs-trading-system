@@ -3,7 +3,10 @@ from __future__ import annotations
 import os
 import json
 from dataclasses import dataclass
+from pathlib import Path
 from urllib.request import Request, urlopen
+
+from dotenv import load_dotenv
 
 
 @dataclass(frozen=True)
@@ -19,6 +22,10 @@ class AlpacaPaperAdapter:
     """Paper-only broker adapter; dry run remains the default."""
 
     def __init__(self, dry_run: bool = True) -> None:
+        here = Path(__file__).resolve()
+        for candidate in (here.parents[3] / ".env", here.parents[4] / ".env"):
+            if candidate.exists():
+                load_dotenv(candidate, override=False)
         self.dry_run = dry_run
         self.base_url = os.getenv("ALPACA_BASE_URL", "https://paper-api.alpaca.markets")
         if "paper" not in self.base_url:
